@@ -1,0 +1,20 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Graph Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Movie Graph Explorer</h1>
+    <div id="graph-container">
+        <!-- Ici sera généré le graphe de films -->
+    </div>
+    <div id="film-details">
+        <!-- Ici s'afficheront les détails du film lorsqu'un cercle est cliqué -->
+    </div>
+    <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
