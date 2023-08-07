@@ -1,20 +1,44 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Movie Graph Explorer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Mon Site de Visualisation de Films</title>
+    <!-- Inclure les fichiers CSS de Plotly.js -->
+    <link rel="stylesheet" href="https://cdn.plot.ly/plotly-latest.min.css">
 </head>
 <body>
-    <h1>Movie Graph Explorer</h1>
-    <div id="graph-container">
-        <!-- Ici sera généré le graphe de films -->
-    </div>
-    <div id="film-details">
-        <!-- Ici s'afficheront les détails du film lorsqu'un cercle est cliqué -->
-    </div>
-    <script src="{{ url_for('static', filename='js/d3.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- Div pour afficher le graphique en 3D -->
+    <div id="graph3d"></div>
+
+    <!-- Inclure le fichier JavaScript de Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script>
+        // Récupérer les données du PCA passées depuis Flask dans la variable 'pca_results'
+        var principal_component_1 = {{ pca_results.principal_component_1 | tojson }};
+        var principal_component_2 = {{ pca_results.principal_component_2 | tojson }};
+        var principal_component_3 = {{ pca_results.principal_component_3 | tojson }};
+
+        // Créer les données du graphique en 3D
+        var trace = {
+            x: principal_component_1,
+            y: principal_component_2,
+            z: principal_component_3,
+            mode: 'markers',
+            type: 'scatter3d'
+        };
+        var data = [trace];
+
+        // Définir la mise en page du graphique en 3D
+        var layout = {
+            scene: {
+                xaxis: {title: 'Composante Principale 1'},
+                yaxis: {title: 'Composante Principale 2'},
+                zaxis: {title: 'Composante Principale 3'}
+            }
+        };
+
+        // Afficher le graphique en 3D
+        Plotly.newPlot('graph3d', data, layout);
+    </script>
 </body>
 </html>
