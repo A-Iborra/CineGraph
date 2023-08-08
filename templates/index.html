@@ -13,13 +13,16 @@
 
     const ntm = {{ data_film | safe }};
 
+    console.log(ntm)
+
     const elem = document.getElementById('3d-graph');
 
     const Graph = ForceGraph3D()(elem)
       .graphData(ntm)
-      .nodeAutoColorBy('user')
-      .nodeLabel(node => `${node.user}: ${node.description}`)
-      .onNodeClick(node => window.open(`https://bl.ocks.org/${node.user}/${node.id}`, '_blank'));
+      .nodeLabel('title')
+      .nodeAutoColorBy('cluster');
+      //.nodeLabel(node => `${node.title}: ${node.overview}`);
+      //.onNodeClick(node => window.open(`https://bl.ocks.org/${node.user}/${node.id}`, '_blank'));
 
   </script>
 </body>

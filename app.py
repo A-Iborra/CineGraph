@@ -5,7 +5,7 @@ import json
 app = Flask(__name__,template_folder='templates')
 
 # Chargez le fichier JSON contenant graph_data
-with open('test.json', 'r') as json_file:
+with open('graph_data_vf.json', 'r') as json_file:
     data = json.load(json_file)
 
 
