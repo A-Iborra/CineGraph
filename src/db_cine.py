@@ -159,3 +159,112 @@ with open("pca_results.json", "w") as f:
 
 # Enregistrer les informations sur les films dans un fichier CSV
 data_clust_v1.to_csv("film_data.csv", index=False)
+
+
+
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+numeric_columns = ['runtime_minutes', 'movie_averageRating', 'Production budget $', 'Worldwide gross $']
+numeric_data = data_clust_v1[numeric_columns]
+
+numeric_data.fillna(0, inplace=True)  # Remplacer les valeurs manquantes par 0
+
+
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(numeric_data)
+
+pca = PCA(n_components=3)
+pca_result = pca.fit_transform(scaled_data)
+
+data_with_pca = data_clust_v1.copy()
+data_with_pca['x'] = pca_result[:, 0]
+data_with_pca['y'] = pca_result[:, 1]
+data_with_pca['z'] = pca_result[:, 2]
+
+graph_data = {
+    "nodes": [],
+    "links": []
+}
+
+for index, row in data_with_pca.iterrows():
+    node = {
+        "id": index,
+        "name": row['title'],
+        "x": row['x'],
+        "y": row['y'],
+        "z": row['z']
+    }
+    graph_data["nodes"].append(node)
+
+import json
+
+# Chemin vers le fichier JSON de sauvegarde
+output_json_file = 'graph_datav2.json'
+
+# Enregistrez graph_data dans un fichier JSON
+with open(output_json_file, 'w') as json_file:
+    json.dump(graph_data, json_file)
+
+
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+
+# Chargement des données
+data_clust_v1 = pd.read_csv('data_clust_v1.csv')
+
+# Sélectionnez les variables pour l'analyse PCA
+# Ici, nous sélectionnons toutes les colonnes sauf 'title' qui n'est pas nécessaire pour la réduction de dimension
+# Remplacez les colonnes par celles que vous voulez inclure dans l'analyse
+X = data_clust_v1.drop(columns=['title'])
+
+# Effectuez l'analyse PCA pour réduire les dimensions à 3
+pca = PCA(n_components=3)
+pca_results = pca.fit_transform(scaled_data)
+
+# Effectuez le clustering avec KMeans pour attribuer chaque film à un cluster
+n_clusters = 10
+kmeans = KMeans(n_clusters=n_clusters)
+clusters = kmeans.fit_predict(features)
+
+# Créez un DataFrame avec les coordonnées réduites et les clusters associés
+graph_data = pd.DataFrame({'x': reduced_features[:, 0], 'y': reduced_features[:, 1], 'z': reduced_features[:, 2], 'cluster': clusters})
+
+# Convertissez le DataFrame en un dictionnaire au format requis pour ForceGraph3D
+graph_data_dict = {'nodes': graph_data.to_dict(orient='records')}
+
+# Utilisez le dictionnaire pour créer le graph_data dans le format attendu par ForceGraph3D
+graph_data = {'nodes': graph_data_dict['nodes'], 'links': []}
+
+# Ajouter les coordonnées réduites et les clusters dans le DataFrame data_clust_v1
+data_clust_v1['x'] = reduced_features[:, 0]
+data_clust_v1['y'] = reduced_features[:, 1]
+data_clust_v1['z'] = reduced_features[:, 2]
+data_clust_v1['cluster'] = clusters
+
+nodes = data_clust_v1.to_dict(orient='records')
+
+distances = np.zeros((len(data_clust_v1), len(data_clust_v1)))
+for i in range(len(data_clust_v1)):
+    for j in range(i+1, len(data_clust_v1)):
+        dist = np.linalg.norm(reduced_features[i] - reduced_features[j])
+        distances[i, j] = dist
+        distances[j, i] = dist
+
+# Créer les liens en utilisant la distance minimale
+# Créer les liens en utilisant la distance minimale
+links = []
+for i in range(len(data_clust_v1)):
+    nearest_film_index = np.argsort(distances[i])[1]
+    link = {'source': data_clust_v1.iloc[i]['title'], 'target': data_clust_v1.iloc[nearest_film_index]['title']}
+    links.append(link)
+
+
+graph_data = {
+    'nodes': nodes,
+    'links': links
+}
+
+graph_data
