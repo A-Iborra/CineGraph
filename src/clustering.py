@@ -38,7 +38,7 @@ data_clust_v1['id'] = range(0, len(data_clust_v1))
 encoder = OrdinalEncoder()
 data_clust_v1["genres_encoded"] = encoder.fit_transform(data_clust_v1[["genres"]])
 
-
+data_clust_v1 = data_clust_v1.head(100)
 # Mise à l'échelle des variables numériques
 scaler = StandardScaler()
 scaled_features = scaler.fit_transform(data_clust_v1[["runtime_minutes", "movie_averageRating", "Production budget $", "Worldwide gross $"]])
@@ -47,7 +47,7 @@ scaled_features = scaler.fit_transform(data_clust_v1[["runtime_minutes", "movie_
 features = pd.concat([data_clust_v1["genres_encoded"], pd.DataFrame(scaled_features, columns=["runtime_minutes", "movie_averageRating", "Production budget $", "Worldwide gross $"])], axis=1)
 
 # Appliquer l'algorithme K-Prototypes
-kproto = KPrototypes(n_clusters=3, init='Huang', n_init=10, verbose=1)
+kproto = KPrototypes(n_clusters = 5, init='Huang', n_init= 20, verbose=1)
 clusters = kproto.fit_predict(features, categorical=[0])
 
 # Réduction de dimensionnalité pour visualisation
@@ -91,6 +91,35 @@ graph_data_vf = {
     "nodes": nodes,
     "links": links
 }
+
+# Enregistrez graph_data dans un fichier JSON
+with open("graph_data_vf.json", "w") as f:
+    json.dump(graph_data_vf, f, indent=2)
+
+from collections import defaultdict
+
+# Créer un dictionnaire pour stocker les films par cluster
+films_par_cluster = defaultdict(list)
+
+# Parcourir les films et les ajouter aux clusters appropriés
+for i, row in data_clust_v1.iterrows():
+    cluster_id = row["cluster"]
+    films_par_cluster[cluster_id].append(row["id"])
+
+# Créer des liens entre les films d'un même cluster
+cluster_links = []
+
+for cluster_id, films_ids in films_par_cluster.items():
+    for i in range(len(films_ids)):
+        for j in range(i + 1, len(films_ids)):
+            link = {
+                "source": str(films_ids[i]),
+                "target": str(films_ids[j])
+            }
+            cluster_links.append(link)
+
+# Mettre à jour les liens dans l'objet graph_data
+graph_data_vf["links"].extend(cluster_links)
 
 # Enregistrez graph_data dans un fichier JSON
 with open("graph_data_vf.json", "w") as f:
